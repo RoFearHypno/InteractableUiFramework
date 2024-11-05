@@ -1,0 +1,29 @@
+local Players = game:GetService("Players")
+
+local Local_Player = Players.LocalPlayer
+local Player_Gui = Local_Player:WaitForChild("PlayerGui")
+
+local Main_Gui = Player_Gui:WaitForChild("MainGui")
+local Panels_Folder = Main_Gui:WaitForChild("Panels")
+local Buttons_Holder = Main_Gui:WaitForChild("ButtonsHolder")
+
+local Buttons_Animations_Module = require(script:FindFirstChild("ButtonAnimations"))
+
+Buttons_Animations_Module.Init()
+
+for Index, Button in Buttons_Holder:GetChildren() do
+	if Button:IsA("TextButton") then
+		local Found_Frame = Panels_Folder:FindFirstChild(Button.Name)
+		if not Found_Frame then warn("Couldn't find frame for button '"..Button.Name.."'!") return end
+		Buttons_Animations_Module.Apply_Button_Animation({
+			Button = Button,
+			Speed = 0.1,
+			HoverSize = UDim2.fromScale(0.152, 0.785),
+			HoverColor = Color3.fromRGB(85, 85, 85),
+			ToggleSize = UDim2.fromScale(1,1),
+			OpenFrame = Found_Frame,
+			OpenStrokeColor = Color3.fromRGB(215, 215, 215),
+			OpenFrameSpeed = 0.3
+		})
+	end
+end
