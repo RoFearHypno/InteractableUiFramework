@@ -1,0 +1,115 @@
+local module = {}
+
+local Tween_Service = game:GetService("TweenService")
+local Players = game:GetService("Players")
+
+local Local_Player = Players.LocalPlayer
+local Player_Gui = Local_Player:WaitForChild("PlayerGui")
+
+local Main_Gui = Player_Gui:WaitForChild("MainGui")
+local Panels_Folder = Main_Gui:WaitForChild("Panels")
+local Buttons_Holder = Main_Gui:WaitForChild("ButtonsHolder")
+
+local Activated_Button = nil
+
+--local Orginal_Frames = {
+	
+--}
+
+function FadeInFrame(frame: Frame, speed: number)
+	frame.Transparency = 1
+	Tween_Service:Create(frame, TweenInfo.new(speed, Enum.EasingStyle.Sine), {BackgroundTransparency = 0}):Play()
+	for Index, Obj in frame:GetDescendants() do
+		if Obj:IsA("TextLabel") then
+			Obj.TextTransparency = 1
+			Tween_Service:Create(Obj, TweenInfo.new(speed, Enum.EasingStyle.Sine), {TextTransparency = 0}):Play()
+		elseif Obj:IsA("UIStroke") then
+			Obj.Transparency = 1
+			Tween_Service:Create(Obj, TweenInfo.new(speed, Enum.EasingStyle.Sine), {Transparency = 0}):Play()
+		end
+	end
+end
+
+function FadeOutFrame(frame: Frame, speed: number)
+	Tween_Service:Create(frame, TweenInfo.new(speed, Enum.EasingStyle.Sine), {BackgroundTransparency = 1}):Play()
+	for Index, Obj in frame:GetDescendants() do
+		if Obj:IsA("TextLabel") then
+			Tween_Service:Create(Obj, TweenInfo.new(speed, Enum.EasingStyle.Sine), {TextTransparency = 1}):Play()
+		elseif Obj:IsA("UIStroke") then
+			Tween_Service:Create(Obj, TweenInfo.new(speed, Enum.EasingStyle.Sine), {Transparency = 1}):Play()
+		end
+	end
+end
+
+function module.Init()
+	warn("Running Button Animations Module!")
+	for Index, Frame in Panels_Folder:GetChildren() do
+		FadeOutFrame(Frame, 0)
+		Frame.Visible = true
+	end
+end
+
+function module.Apply_Button_Animation(tbl: {})
+	local Button: TextButton, Speed: number, HoverSize: UDim2, HoverColor: Color3, ToggleSize: UDim2, OpenFrame: Frame, OpenStrokeColor: Color3, OpenFrameSpeed: number = tbl["Button"], tbl["Speed"], tbl["HoverSize"], tbl["HoverColor"] , tbl["ToggleSize"], tbl["OpenFrame"], tbl["OpenStrokeColor"], tbl["OpenFrameSpeed"]
+
+	--if not Button or not Speed or not HoverSize or not ToggleSize or not Color then return end
+
+	local OrginalColor = Button.BackgroundColor3
+	local OrginalSize = Button.Size
+	local UIStroke = Button:FindFirstChild("UIStroke")
+	if not UIStroke then warn("Couldn't find UIStroke for button '"..Button.Name.."'!") return end
+	local OrginalUIStrokeColor = UIStroke.Color
+
+	Button.MouseEnter:Connect(function()
+		--warn("Entered button '"..Button.Name.."'!")
+		if Activated_Button ~= Button then
+			Tween_Service:Create(Button, TweenInfo.new(Speed, Enum.EasingStyle.Sine), {Size = HoverSize}):Play()
+			Tween_Service:Create(Button, TweenInfo.new(Speed, Enum.EasingStyle.Sine), {BackgroundColor3 = HoverColor}):Play()
+		end
+	end)
+	Button.MouseLeave:Connect(function()
+		--warn("Left button '"..Button.Name.."'!")
+		if Activated_Button ~= Button then
+			Tween_Service:Create(Button, TweenInfo.new(Speed, Enum.EasingStyle.Sine), {Size = OrginalSize}):Play()
+			Tween_Service:Create(Button, TweenInfo.new(Speed, Enum.EasingStyle.Sine), {BackgroundColor3 = OrginalColor}):Play()
+		end
+	end)
+	Button.Activated:Connect(function()
+		if Activated_Button == Button then
+			Tween_Service:Create(Button, TweenInfo.new(Speed, Enum.EasingStyle.Sine), {Size = OrginalSize}):Play()
+			Tween_Service:Create(Button, TweenInfo.new(Speed, Enum.EasingStyle.Sine), {BackgroundColor3 = OrginalColor}):Play()
+			Tween_Service:Create(Activated_Button:FindFirstChild("UIStroke"), TweenInfo.new(Speed, Enum.EasingStyle.Sine), {Color = OrginalColor}):Play()
+			
+			Activated_Button = nil
+			
+			FadeOutFrame(OpenFrame, OpenFrameSpeed)
+		elseif Activated_Button ~= nil and Activated_Button ~= Button then
+			local Found_Other_Frame = Panels_Folder:FindFirstChild(Activated_Button.Name)
+			
+			if Found_Other_Frame then
+				Tween_Service:Create(Activated_Button, TweenInfo.new(Speed, Enum.EasingStyle.Sine), {Size = OrginalSize}):Play()
+				Tween_Service:Create(Activated_Button, TweenInfo.new(Speed, Enum.EasingStyle.Sine), {BackgroundColor3 = OrginalColor}):Play()
+				Tween_Service:Create(Activated_Button:FindFirstChild("UIStroke"), TweenInfo.new(Speed, Enum.EasingStyle.Sine), {Color = OrginalColor}):Play()
+				FadeOutFrame(Found_Other_Frame, OpenFrameSpeed)
+			end
+			
+			Tween_Service:Create(Button, TweenInfo.new(Speed, Enum.EasingStyle.Sine), {Size = HoverSize}):Play()
+			Tween_Service:Create(Button, TweenInfo.new(Speed, Enum.EasingStyle.Sine), {BackgroundColor3 = HoverColor}):Play()
+			Tween_Service:Create(Button:FindFirstChild("UIStroke"), TweenInfo.new(Speed, Enum.EasingStyle.Sine), {Color = OpenStrokeColor}):Play()
+			
+			FadeInFrame(OpenFrame, OpenFrameSpeed)
+			
+			Activated_Button = Button
+		elseif Activated_Button == nil then
+			Tween_Service:Create(Button, TweenInfo.new(Speed, Enum.EasingStyle.Sine), {Size = HoverSize}):Play()
+			Tween_Service:Create(Button, TweenInfo.new(Speed, Enum.EasingStyle.Sine), {BackgroundColor3 = HoverColor}):Play()
+			Tween_Service:Create(Button:FindFirstChild("UIStroke"), TweenInfo.new(Speed, Enum.EasingStyle.Sine), {Color = OpenStrokeColor}):Play()
+			
+			Activated_Button = Button
+			
+			FadeInFrame(OpenFrame, OpenFrameSpeed)
+		end
+	end)
+end
+
+return module
